@@ -1,0 +1,9 @@
+
+services:
+  lang-check-bot:
+    build: .
+    volumes:
+      - .:/app
+    tty: true
+    env_file:
+      - env
