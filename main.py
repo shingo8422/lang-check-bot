@@ -15,18 +15,7 @@ class Feedback(BaseModel):
     natural_sentence: str
     explanation: str
 
-@client.event
-async def on_ready():
-    print(f'Logged in as {client.user}')
-
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-
-    if not ":react:" in message.content:
-        return
-
+async def point_out(message):
     chat_completion = openai_client.beta.chat.completions.parse(
         messages=[
             {
@@ -42,7 +31,7 @@ natural_sentenceからは，`:react:`という文字列を含めないでくだ�
             },
             {
                 "role": "user",
-                "content": f"Please evaluate the following message: '{message.content}'. Provide feedback. Example: {{'is_not_natural': true or false, 'feedback': 'natural_sentence: **xxx**', explanation: yyy}}",
+                "content": f"Please evaluate the following message: '{message.content}'. Provide feedback. Example: {{'is_not_natural': true or false, 'feedback': 'natural_sentence': 'xxx', 'explanation': 'yyy'}}",
             }
         ],
         model="gpt-4o-2024-08-06",
@@ -52,11 +41,29 @@ natural_sentenceからは，`:react:`という文字列を含めないでくだ�
     feedback = chat_completion.choices[0].message.parsed
 
     print(f"message: {message}, feedback: {{ is_not_natural: {feedback.is_not_natural}, feedback: {feedback.natural_sentence}, explanation: {feedback.explanation} }}")
-
     # 不自然な表現がある場合にフィードバックを送信
     if feedback.is_not_natural:
-        await message.channel.send(f"""
-**feedback**: {feedback.natural_sentence}
-**explanation**: {feedback.explanation}""")
+        pointed_out_channel = discord.utils.get(message.guild.channels, name='pointed-out')
+        if pointed_out_channel:
+            await pointed_out_channel.send(f"""
+元のメッセージ: {message.content.replace(":pls_ck:", "")}
+送信者: {message.author.mention}
+
+フィードバック: {feedback.natural_sentence}
+説明: {feedback.explanation}""")
+        else:
+            await message.channel.send("'pointed-out'チャンネルが見つかりません。管理者に連絡してください。")
+
+@client.event
+async def on_ready():
+    print(f'Logged in as {client.user}')
+
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+
+    if ":pls_ck:" in message.content:
+        await point_out(message)
 
 client.run(os.environ.get("DISCORD_BOT_TOKEN"))
