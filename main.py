@@ -24,6 +24,8 @@ async def point_out(message, context_message_limit=10):
     
     context_str = "\n".join(context_messages)
 
+    main_message = message.content.replace(":pls_ck:", "")
+
     prompt_messages = [
         {
             "role": "system",
@@ -38,7 +40,7 @@ Discordで使われている文章なので，カジュアルな会話表現は�
         },
         {
             "role": "user",
-            "content": f"以下は直前のメッセージの文脈です：\n{context_str}\n\n次のメッセージを評価してください: '{message.content}'. フィードバックを提供してください。例: {{'is_not_natural': true or false, 'natural_sentence': 'xxx', 'explanation': 'yyy'}}",
+            "content": f"以下は直前のメッセージの文脈です：\n{context_str}\n\n次のメッセージを評価してください: '{main_message}'. フィードバックを提供してください。例: {{'is_not_natural': true or false, 'natural_sentence': 'xxx', 'explanation': 'yyy'}}",
         }
     ]
 
@@ -58,7 +60,7 @@ Discordで使われている文章なので，カジュアルな会話表現は�
         pointed_out_channel = discord.utils.get(message.guild.channels, name='pointed-out')
         if pointed_out_channel:
             await pointed_out_channel.send(f"""
-original_message: {message.content.replace(":pls_ck:", "")}
+original_message: {main_message}
 sender: {message.author.mention}
 
 feedback: {feedback.natural_sentence}
@@ -76,9 +78,9 @@ async def on_message(message):
         return
 
     if ":pls_ck:" in message.content:
-        await point_out(message.replace(":pls_ck:"))
+        await point_out(message)
     
-    if message.reference.resolved is not None and message.reference.resolved.author == client.user and message.reference:
+    if message.reference is not None and message.reference.resolved is not None and message.reference.resolved.author == client.user and message.reference:
         # Process replies to the bot's messages
         await handle_reply(message)
 
