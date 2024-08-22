@@ -1,46 +1,47 @@
-# 日本語・英語文法チェックDiscordボット
+# Japanese and English Grammar Check Discord Bot
 
-このプロジェクトは、Discordサーバー内で日本語と英語の文法をチェックするボットを実装したものです。ユーザーが`:react:`を含むメッセージを送信すると、ボットがその文章を分析し、必要に応じてフィードバックを提供します。
+This project implements a bot that checks Japanese and English grammar within a Discord server. When a user sends a message containing `:pls_ck:`,  
+the bot analyzes the text and provides feedback as needed.
 
-## 主な機能
+## Main Features
 
-- 日本語と英語の文法チェック
-- 不自然な表現の指摘と修正案の提示
-- 詳細な説明の提供
+- Japanese and English grammar checking
+- Identification of unnatural expressions and suggestion of corrections
+- Provision of detailed explanations
 
-## 技術スタック
+## Technology Stack
 
 - Python 3.11
 - Discord.py
-- OpenAI API (GPT-4モデル)
+- OpenAI API (GPT-4 model)
 - Pydantic
 
-## セットアップ方法
+## Setup Instructions
 
-1. このリポジトリをクローンします。
-2. `env.example`ファイルを`.env`にリネームし、必要な環境変数を設定します。
-   - `OPENAI_API_KEY`: OpenAI APIキー
-   - `DISCORD_BOT_TOKEN`: DiscordボットのトークンID
-3. 必要なパッケージをインストールします：
+1. Clone this repository.
+2. Rename the `env.example` file to `.env` and set the necessary environment variables.
+   - `OPENAI_API_KEY`: OpenAI API key
+   - `DISCORD_BOT_TOKEN`: Discord bot token ID
+3. Install the required packages:
    ```
    pip install -r requirements.txt
    ```
-4. ボットを起動します：
+4. Start the bot:
    ```
    python main.py
    ```
 
-## 使用方法
+## Usage
 
-1. ボットをDiscordサーバーに招待します。
-2. `:react:`を含むメッセージを送信します。
-3. ボットが文法をチェックし、必要に応じてフィードバックを提供します。
+1. Invite the bot to your Discord server.
+2. Send a message containing `:pls_ck:`.
+3. The bot will check the grammar and provide feedback as needed.
 
-## 注意事項
+## Notes
 
-- 環境変数を含む`.env`ファイルは`.gitignore`に追加されており、公開リポジトリにプッシュされません。
-- このボットはDockerを使用してコンテナ化することもできます。
+- The `.env` file containing environment variables is added to `.gitignore` and will not be pushed to public repositories.
+- This bot can also be containerized using Docker.
 
-## ライセンス
+## License
 
-このプロジェクトはMITライセンスの下で公開されています。詳細は`LICENSE`ファイルを参照してください。
+This project is released under the MIT License. For details, please refer to the `LICENSE` file.
