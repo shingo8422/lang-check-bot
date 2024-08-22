@@ -24,8 +24,8 @@ async def point_out(message):
 あなたは日本語と英語の文法と表現をチェックする専門家です。
 ユーザーが入力した`日本語`または`英語`を分析し、あまりにも不自然な使用方法の場合は，指摘してください。
 Discordで使われている文章なので，多少くだけたカジュアルな内容は許容してください．
-natural_sentenceからは，`:react:`という文字列を含めないでください．
-フィードバックや解説は、Discordでわかりやすく表示されるように，強調表示，斜め文字，引用のデコレーションをうまく使ってください
+natural_sentenceには，`:pls_ck:`という文字列を含めないでください．
+フィードバックや解説は、Discordでわかりやすく表示されるように，強調表示(**)などのデコレーションをうまく使ってください
 解説も加えてください．
 """
             },
@@ -46,13 +46,13 @@ natural_sentenceからは，`:react:`という文字列を含めないでくだ�
         pointed_out_channel = discord.utils.get(message.guild.channels, name='pointed-out')
         if pointed_out_channel:
             await pointed_out_channel.send(f"""
-元のメッセージ: {message.content.replace(":pls_ck:", "")}
-送信者: {message.author.mention}
+original_message: {message.content.replace(":pls_ck:", "")}
+sender: {message.author.mention}
 
-フィードバック: {feedback.natural_sentence}
-説明: {feedback.explanation}""")
+feedback: {feedback.natural_sentence}
+explanation: {feedback.explanation}""")
         else:
-            await message.channel.send("'pointed-out'チャンネルが見つかりません。管理者に連絡してください。")
+            await message.channel.send("'pointed-out' is not found.Contact to Administrator")
 
 @client.event
 async def on_ready():
