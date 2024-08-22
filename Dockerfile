@@ -12,3 +12,5 @@ RUN poetry config virtualenvs.create false && poetry install
 COPY . .
 
 CMD ["python", "main.py"]
+
+EXPOSE 80

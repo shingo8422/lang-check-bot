@@ -1,7 +1,17 @@
+from flask import Flask
+import threading
 from pydantic import BaseModel
 import discord
 from openai import OpenAI
 import json, os
+
+app = Flask(__name__)
+
+
+@app.route("/")
+def home():
+    return "Bot is running"
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -127,4 +137,10 @@ async def generate_reply_response(reply_content, original_message):
     return chat_completion.choices[0].message.content
 
 
-client.run(os.environ.get("DISCORD_BOT_TOKEN"))
+def run_discord_bot():
+    client.run(os.environ.get("DISCORD_BOT_TOKEN"))
+
+
+if __name__ == "__main__":
+    threading.Thread(target=run_discord_bot).start()
+    app.run(host="0.0.0.0", port=80)
