@@ -25,6 +25,7 @@ class Feedback(BaseModel):
     is_not_natural: bool
     natural_sentence: str
     explanation: str
+    alternative_expression: str
 
 
 async def point_out(message, context_message_limit=10):
@@ -38,7 +39,9 @@ async def point_out(message, context_message_limit=10):
 
     context_str = "\n".join(context_messages)
 
-    main_message = message.content.replace(":pls_ck:", "")
+    main_message = message.content.replace(":pls_ck:", "").replace(
+        "<1276158789220958258>", ""
+    )
 
     prompt_messages = [
         {
@@ -46,15 +49,18 @@ async def point_out(message, context_message_limit=10):
             "content": """
 あなたは日本語と英語の文法と表現をチェックするBot`langcheck-bot`です。
 ユーザーが入力した`日本語`または`英語`を分析し、あまりにも不自然な使用方法の場合は，指摘してください。
-Discordで使われている文章なので，カジュアルな会話表現は許容してください．
+Discordで使われている文章なので，カジュアルな会話表現は`不自然`判定しないでください．
+また，シングルクォーテーションを忘れていたり，先頭の文字を大文字にするの忘れている等の細かいミスは`不自然`判定しないでください．
 フィードバックや解説は、Discordでわかりやすく表示されるように，強調表示(**)などのデコレーションをうまく使ってください
 解説も加えてください．
 文脈も考慮して判断してください。
+文章が正しい場合は、その旨を通知してください。
+また，文章が正しい場合は，別の言い回し('alternative_expression')も教えてください．
 """,
         },
         {
             "role": "user",
-            "content": f"以下は直前のメッセージの文脈です：\n{context_str}\n\n次のメッセージを評価してください: '{main_message}'. フィードバックを提供してください。例: {{'is_not_natural': true or false, 'natural_sentence': 'xxx', 'explanation': 'yyy'}}",
+            "content": f"以下は直前のメッセージの文脈です：\n{context_str}\n\n次のメッセージを評価してください: '{main_message}'. フィードバックを提供してください。例: {{'is_not_natural': true or false, 'natural_sentence': 'xxx', 'explanation': 'yyy', 'alternative_expression': 'zzz'}}",
         },
     ]
 
@@ -64,6 +70,7 @@ Discordで使われている文章なので，カジュアルな会話表現は�
         messages=prompt_messages,
         model="gpt-4o-2024-08-06",
         response_format=Feedback,
+        max_tokens=3000,
     )
 
     feedback = chat_completion.choices[0].message.parsed
@@ -72,11 +79,9 @@ Discordで使われている文章なので，カジュアルな会話表現は�
         f"message: {message}, feedback: {{ is_not_natural: {feedback.is_not_natural}, feedback: {feedback.natural_sentence}, explanation: {feedback.explanation} }}"
     )
 
-    if feedback.is_not_natural:
-        pointed_out_channel = discord.utils.get(
-            message.guild.channels, name="pointed-out"
-        )
-        if pointed_out_channel:
+    pointed_out_channel = discord.utils.get(message.guild.channels, name="pointed-out")
+    if pointed_out_channel:
+        if feedback.is_not_natural:
             await pointed_out_channel.send(
                 f"""
 original_message: {main_message}
@@ -86,9 +91,19 @@ feedback: {feedback.natural_sentence}
 explanation: {feedback.explanation}"""
             )
         else:
-            await message.channel.send(
-                "'pointed-out' is not found. Contact to Administrator"
+            await pointed_out_channel.send(
+                f"""
+sender: {message.author.mention}
+
+Congratulations! Your sentence is natural and correct.
+original_message: {main_message}
+alternative_expression: {feedback.alternative_expression}"""
             )
+            await message.add_reaction("👍")
+    else:
+        await message.channel.send(
+            "'pointed-out' チャンネルが見つかりません。管理者に連絡してください。"
+        )
 
 
 @client.event
