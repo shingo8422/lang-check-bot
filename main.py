@@ -3,7 +3,9 @@ import threading
 from pydantic import BaseModel
 import discord
 from openai import OpenAI
-import json, os
+import os
+import tempfile
+import random
 
 app = Flask(__name__)
 
@@ -106,6 +108,48 @@ alternative_expression: {feedback.alternative_expression}"""
         )
 
 
+# 音声のリストを定義
+VOICE_LIST = [
+    "alloy",
+    # "onyx"
+]
+
+
+async def voice_out(message):
+    main_message = message.content.replace("<:pls_vo:1276968827477037137>", "").strip()
+
+    # ランダムに音声を選択
+    selected_voice = random.choice(VOICE_LIST)
+
+    # テキストを音声に変換
+    response = openai_client.audio.speech.create(
+        model="tts-1",
+        voice=selected_voice,
+        input=main_message,
+    )
+
+    # 一時ファイルを作成して音声データを保存
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+        temp_file.write(response.content)
+        temp_file_path = temp_file.name
+
+    # voicesチャンネルを取得
+    voices_channel = discord.utils.get(message.guild.channels, name="voices")
+
+    if voices_channel:
+        # 音声ファイルを送信
+        await voices_channel.send(
+            f"sender: {message.author.mention}\nvoice: {selected_voice}",
+            file=discord.File(temp_file_path, filename="voice_message.mp3"),
+        )
+        # 一時ファイルを削除
+        os.unlink(temp_file_path)
+    else:
+        await message.channel.send(
+            "'voices' チャンネルが見つかりません。管理者に連絡してください。"
+        )
+
+
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
@@ -118,6 +162,10 @@ async def on_message(message):
 
     if ":pls_ck:" in message.content:
         await point_out(message)
+
+    if ":pls_vo:" in message.content:
+        print(f"voice_message: {message.content}")
+        await voice_out(message)
 
     if (
         message.reference is not None
